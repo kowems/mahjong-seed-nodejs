@@ -1,0 +1,17 @@
+{
+  "excludeScenes": [],
+  "includeAnySDK": false,
+  "includeSdk": [
+    "anysdk"
+  ],
+  "orientation": {
+    "landscapeLeft": true,
+    "landscapeRight": true,
+    "portrait": false,
+    "upsideDown": false
+  },
+  "packageName": "com.vivigames.scmj",
+  "startScene": "4a1acad9-ce88-4334-aa62-bf23a5ccc79e",
+  "title": "DDMJ",
+  "webOrientation": "landscape"
+}

@@ -1,0 +1,18 @@
+{
+  "collision-matrix": [
+    [
+      true
+    ]
+  ],
+  "excluded-modules": [
+    "DragonBones",
+    "Collider",
+    "VideoPlayer",
+    "TiledMap",
+    "ParticleSystem"
+  ],
+  "group-list": [
+    "default"
+  ],
+  "start-scene": "023af6ad-f846-4f48-89f9-0096df3c757e"
+}

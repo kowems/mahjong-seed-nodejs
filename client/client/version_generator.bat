@@ -1,0 +1,1 @@
+node version_generator.js -v 1.4.5 -u http://192.168.1.88:10086/remote-assets/ -s build/jsb-binary/ -d assets/

@@ -1,0 +1,19 @@
+{
+  "collision-matrix": [
+    [
+      true
+    ]
+  ],
+  "excluded-modules": [
+    "TiledMap",
+    "Spine Skeleton",
+    "ParticleSystem",
+    "Collider",
+    "VideoPlayer",
+    "DragonBones"
+  ],
+  "group-list": [
+    "default"
+  ],
+  "start-scene": "4a1acad9-ce88-4334-aa62-bf23a5ccc79e"
+}

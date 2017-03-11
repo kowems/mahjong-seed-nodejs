@@ -1,0 +1,17 @@
+{
+  "excludeScenes": [],
+  "includeAnySDK": false,
+  "includeSdk": [
+    "anysdk"
+  ],
+  "orientation": {
+    "landscapeLeft": true,
+    "landscapeRight": true,
+    "portrait": false,
+    "upsideDown": false
+  },
+  "packageName": "org.cocos2d.dealers",
+  "startScene": "023af6ad-f846-4f48-89f9-0096df3c757e",
+  "title": "dealers",
+  "webOrientation": "portrait"
+}
