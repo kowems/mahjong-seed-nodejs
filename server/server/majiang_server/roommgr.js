@@ -32,10 +32,13 @@ function constructRoomFromDb(dbdata){
 
 
 	if(roomInfo.conf.type == "xlch"){
-		roomInfo.gameMgr = require("./gamemgr_xlch");
+		roomInfo.gameMgr = require("./gamemgr_dl_qh");
 	}
-	else{
-		roomInfo.gameMgr = require("./gamemgr_xzdd");
+	else if(roomInfo.conf.type == "xzdd"){
+		roomInfo.gameMgr = require("./gamemgr_dl_qh");
+	}
+	else if(roomInfo.conf.type == "dl_qh"){
+		roomInfo.gameMgr = require("./gamemgr_dl_qh");
 	}
 	var roomId = roomInfo.id;
 
@@ -145,10 +148,13 @@ exports.createRoom = function(creator,roomConf,gems,ip,port,callback){
 					};
 					
 					if(roomConf.type == "xlch"){
-						roomInfo.gameMgr = require("./gamemgr_xlch");
+						roomInfo.gameMgr = require("./gamemgr_dl_qh");
 					}
-					else{
-						roomInfo.gameMgr = require("./gamemgr_xzdd");
+					else if(roomConf.type == "xzdd"){
+						roomInfo.gameMgr = require("./gamemgr_dl_qh");
+					}
+					else if(roomConf.type == "dl_qh"){
+						roomInfo.gameMgr = require("./gamemgr_dl_qh");
 					}
 					console.log(roomInfo.conf);
 					
