@@ -12,6 +12,11 @@ var ACTION_PENG = 3;
 var ACTION_GANG = 4;
 var ACTION_HU = 5;
 var ACTION_ZIMO = 6;
+var ACTION_CHI = 7;
+
+var CHI_METHOD_ZUO = 1;
+var CHI_METHOD_ZHONG = 1;
+var CHI_METHOD_YOU = 1;
 
 var gameSeatsOfUsers = {};
 
@@ -218,24 +223,21 @@ function checkCanWanGang(game,seatData){
 }
 
 //检查是否可以吃
-function checkCanChi(game,targetPai) {
+function checkCanChi(game,seatData,targetPai) {
     var canChiRet = false;
 
     if(getMJType(targetPai) >= 3 ){
         //字牌不参与吃动作计算
         return false;
     }
-    
-    var turn = FindNextUser(game);
-    var nextSeat = game.gameSeats[turn];
 
-    if(checkCanZuoChi(nextSeat,targetPai)){
+    if(checkCanZuoChi(seatData,targetPai)){
         canChiRet = true;
     }
-    if(checkCanYouChi(nextSeat,targetPai)){
+    if(checkCanYouChi(seatData,targetPai)){
         canChiRet = true;
     }
-    if(checkCanZhongChi(nextSeat,targetPai)){
+    if(checkCanZhongChi(seatData,targetPai)){
         canChiRet = true;
     }
 
@@ -461,7 +463,9 @@ function sendOperations(game,seatData,pai) {
             hu:seatData.canHu,
             peng:seatData.canPeng,
             gang:seatData.canGang,
-            chi:seatData.canYouChi | seatData.canZuoChi | seatData.canZhongChi,
+            youChi:seatData.canYouChi,
+            zuoChi:seatData.canZuoChi,
+            zhongChi:seatData.canZhongChi,
             gangpai:seatData.gangPai
         };
 
@@ -1700,11 +1704,19 @@ exports.chuPai = function(userId,pai){
         }
         checkCanPeng(game,ddd,pai);
         checkCanDianGang(game,ddd,pai);
-        if(i == 0) checkCanChi(game,pai);
         if(hasOperations(ddd)){
             sendOperations(game,ddd,game.chuPai);
             hasActions = true;
         }
+    }
+
+    var turn = FindNextUser(game);
+    var nextSeat = game.gameSeats[turn];
+
+    checkCanChi(game,nextSeat,pai);
+    if(hasOperations(nextSeat)){
+        sendOperations(game,nextSeat,game.chuPai);
+        hasActions = true;
     }
 
     //如果没有人有操作，则向下一家发牌，并通知他出牌
@@ -1774,6 +1786,122 @@ exports.peng = function(userId){
         return;
     }
 
+    //进行碰牌处理
+    //扣掉手上的牌
+    //从此人牌中扣除
+    for(var i = 0; i < 2; ++i){
+        var index = seatData.holds.indexOf(pai);
+        if(index == -1){
+            console.log("can't find mj.");
+            return;
+        }
+        seatData.holds.splice(index,1);
+        seatData.countMap[pai] --;
+    }
+    seatData.pengs.push(pai);
+    game.chuPai = -1;
+
+    recordGameAction(game,seatData.seatIndex,ACTION_PENG,pai);
+
+    //广播通知其它玩家
+    userMgr.broacastInRoom('peng_notify_push',{userid:seatData.userId,pai:pai},seatData.userId,true);
+
+    //碰的玩家打牌
+    moveToNextUser(game,seatData.seatIndex);
+    
+    //广播通知玩家出牌方
+    seatData.canChuPai = true;
+    userMgr.broacastInRoom('game_chupai_push',seatData.userId,seatData.userId,true);
+};
+
+exports.doChi = function(userId,method){
+    var seatData = gameSeatsOfUsers[userId];
+    if(seatData == null){
+        console.log("can't find user game data.");
+        return;
+    }
+
+    var game = seatData.game;
+
+    //如果是他出的牌，则忽略
+    if(game.turn == seatData.seatIndex){
+        console.log("it's your turn.");
+        return;
+    }
+
+    //如果没有碰的机会，则不能再碰
+    if(seatData.canYouChi == false && 
+       seatData.canZhongChi == false &&
+       seatData.canZuoChi == false){
+        console.log("seatData.canYouChi == false && seatData.canZhongChi == false && seatData.canZuoChi == false");
+        return;
+    }
+
+    //和的了，就不要再来了
+    if(seatData.hued){
+        console.log('you have already hued. no kidding plz.');
+        return;
+    }
+    
+    //如果有人可以胡牌，则需要等待
+    var i = game.turn;
+    while(true){
+        var i = (i + 1)%4;
+        if(i == game.turn){
+            break;
+        }
+        else{
+            var ddd = game.gameSeats[i];
+            if(ddd.canHu && i != seatData.seatIndex){
+                return;    
+            }
+        }
+    }
+
+
+    clearAllOptions(game);
+
+    //验证手上的牌的数目
+    var pai = game.chuPai;
+
+    var pai0 = 0;
+    var pai1 = 0;
+    var pai2 = 0;
+
+    switch(method)
+    {
+        case CHI_METHOD_ZUO:
+            pai0 = pai;
+            pai1 = pai + 1;
+            pai2 = pai + 2;
+            break;
+        case CHI_METHOD_ZHONG:
+            pai0 = pai - 1;
+            pai1 = pai;
+            pai2 = pai + 1;
+            break;
+        case CHI_METHOD_YOU:
+            pai0 = pai - 2;
+            pai1 = pai - 1;
+            pai2 = pai;
+            break;
+        default:
+            break;
+    }
+    var pending_chi_array = {pai0,pai1,pai2};
+
+    //容错
+    for(var i = 0;i < pending_chi_array.length; i++){
+        var c = seatData.countMap[pending_chi_array[i]];
+        if(c == null || c < 1){
+            console.log("pai:" + pending_chi_array[i] + ",count:" + c);
+            console.log(seatData.holds);
+            console.log("lack of mj.");
+            return;
+        }
+    }
+
+    //TODO
     //进行碰牌处理
     //扣掉手上的牌
     //从此人牌中扣除
