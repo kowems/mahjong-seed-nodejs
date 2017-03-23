@@ -177,6 +177,14 @@ exports.start = function(config,mgr){
 			socket.gameMgr.peng(socket.userId);
 		});
 		
+		//碰
+		socket.on('chi',function(data){
+			if(socket.userId == null){
+				return;
+			}
+			socket.gameMgr.dochi(socket.userId,data.method);
+		});
+		
 		//杠
 		socket.on('gang',function(data){
 			if(socket.userId == null || data == null){

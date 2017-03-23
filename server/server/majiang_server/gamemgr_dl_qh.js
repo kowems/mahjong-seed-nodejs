@@ -12,7 +12,9 @@ var ACTION_PENG = 3;
 var ACTION_GANG = 4;
 var ACTION_HU = 5;
 var ACTION_ZIMO = 6;
-var ACTION_CHI = 7;
+var ACTION_ZUOCHI = 7;
+var ACTION_ZHONGCHI = 8;
+var ACTION_YOUCHI = 9;
 
 var CHI_METHOD_ZUO = 1;
 var CHI_METHOD_ZHONG = 1;
@@ -1333,8 +1335,12 @@ exports.begin = function(roomId) {
         data.wangangs = [];
         //碰了的牌
         data.pengs = [];
-        //吃的牌
-        data.chis = [];
+        //左吃的牌
+        data.zuochis = [];
+        //中吃的牌
+        data.zhongchis = [];
+        //右吃的牌
+        data.youchis = [];
         //缺一门
         data.que = -1;
 
@@ -1892,6 +1898,7 @@ exports.doChi = function(userId,method){
 
     //容错
     for(var i = 0;i < pending_chi_array.length; i++){
+        //容错
         var c = seatData.countMap[pending_chi_array[i]];
         if(c == null || c < 1){
             console.log("pai:" + pending_chi_array[i] + ",count:" + c);
@@ -1901,28 +1908,42 @@ exports.doChi = function(userId,method){
         }
     }
 
-    //TODO
-    //进行碰牌处理
+    //进行吃牌处理
     //扣掉手上的牌
     //从此人牌中扣除
-    for(var i = 0; i < 2; ++i){
-        var index = seatData.holds.indexOf(pai);
+    for(var i = 0;i < pending_chi_array.length; i++){
+        var index = seatData.holds.indexOf(pending_chi_array[i]);
         if(index == -1){
             console.log("can't find mj.");
             return;
         }
         seatData.holds.splice(index,1);
-        seatData.countMap[pai] --;
+        seatData.countMap[pending_chi_array[i]] --;
     }
-    seatData.pengs.push(pai);
+    switch(method)
+    {
+        case CHI_METHOD_ZUO:
+            seatData.zuochis.push(pai);
+            recordGameAction(game,seatData.seatIndex,ACTION_ZUOCHI,pai);
+            break;
+        case CHI_METHOD_ZHONG:
+            seatData.zhongchis.push(pai);
+            recordGameAction(game,seatData.seatIndex,ACTION_ZHONGCHI,pai);
+            break;
+        case CHI_METHOD_YOU:
+            seatData.youchis.push(pai);
+            recordGameAction(game,seatData.seatIndex,ACTION_YOUCHI,pai);
+            break;
+        default:
+            break;
+    }
     game.chuPai = -1;
 
-    recordGameAction(game,seatData.seatIndex,ACTION_PENG,pai);
-
+    //FIXME 在客户端增加chi_notify_push
     //广播通知其它玩家
-    userMgr.broacastInRoom('peng_notify_push',{userid:seatData.userId,pai:pai},seatData.userId,true);
+    userMgr.broacastInRoom('chi_notify_push',{userid:seatData.userId,pai:pai},seatData.userId,true);
 
-    //碰的玩家打牌
+    //吃的玩家打牌
     moveToNextUser(game,seatData.seatIndex);
     
     //广播通知玩家出牌方
