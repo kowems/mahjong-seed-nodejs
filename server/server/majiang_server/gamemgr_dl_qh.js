@@ -326,14 +326,6 @@ function clearAllOptions(game,seatData){
 //检查听牌
 function checkCanTingPai(game,seatData){
     seatData.tingMap = {};
-    
-    //检查手上的牌是不是已打缺，如果未打缺，则不进行判定
-    for(var i = 0; i < seatData.holds.length; ++i){
-        var pai = seatData.holds[i];
-        if(getMJType(pai) == seatData.que){
-            return;
-        }   
-    }
 
     //检查是否是七对 前提是没有碰，也没有杠 ，即手上拥有13张牌
     if(seatData.holds.length == 13){
@@ -371,62 +363,11 @@ function checkCanTingPai(game,seatData){
         }
     }
 
-    //检查是否是对对胡  由于四川麻将没有吃，所以只需要检查手上的牌
-    //对对胡叫牌有两种情况
-    //1、N坎 + 1张单牌
-    //2、N-1坎 + 两对牌
-    var singleCount = 0;
-    var colCount = 0;
-    var pairCount = 0;
-    var arr = [];
-    for(var k in seatData.countMap){
-        var c = seatData.countMap[k];
-        if(c == 1){
-            singleCount++;
-            arr.push(k);
-        }
-        else if(c == 2){
-            pairCount++;
-            arr.push(k);
-        }
-        else if(c == 3){
-            colCount++;
-        }
-        else if(c == 4){
-            //手上有4个一样的牌，在四川麻将中是和不了对对胡的 随便加点东西
-            singleCount++;
-            pairCount+=2;
-        }
-    }
-
-    if((pairCount == 2 && singleCount == 0) || (pairCount == 0 && singleCount == 1) ){
-        for(var i = 0; i < arr.length; ++ i){
-            //对对胡1番
-            var p = arr[i];
-            if(seatData.tingMap[p] == null){
-                seatData.tingMap[p] = {
-                    pattern:"duidui",
-                    fan:1
-                };
-            }
-        }
-    }
-
     //console.log(seatData.holds);
     //console.log(seatData.countMap);
     //console.log("singleCount:" + singleCount + ",colCount:" + colCount + ",pairCount:" + pairCount);
     //检查是不是平胡
-    if(seatData.que != 0){
-        mjutils.checkTingPai(seatData,0,9);        
-    }
-
-    if(seatData.que != 1){
-        mjutils.checkTingPai(seatData,9,18);        
-    }
-
-    if(seatData.que != 2){
-        mjutils.checkTingPai(seatData,18,27);        
-    }
+    mjutils.checkTingPai(seatData,0,34);
 }
 
 function getSeatIndex(userId){
