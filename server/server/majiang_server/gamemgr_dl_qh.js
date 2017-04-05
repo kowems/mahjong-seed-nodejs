@@ -20,29 +20,38 @@ var CHI_METHOD_ZUO = 1;
 var CHI_METHOD_ZHONG = 1;
 var CHI_METHOD_YOU = 1;
 
+var MJ_TYPE_TONG = 0;
+var MJ_TYPE_TIAO = 1;
+var MJ_TYPE_WAN = 2;
+var MJ_TYPE_FENG = 3;
+var MJ_TYPE_JIAN = 4;
+var MJ_TYPE_NONE = 0xFFFFFFFF;
+
 var gameSeatsOfUsers = {};
 
 function getMJType(id){
     if(id >= 0 && id < 9){
         //筒
-        return 0;
+        return MJ_TYPE_TONG;
     }
     else if(id >= 9 && id < 18){
         //条
-        return 1;
+        return MJ_TYPE_TIAO;
     }
     else if(id >= 18 && id < 27){
         //万
-        return 2;
+        return MJ_TYPE_WAN;
     }
     else if(id >= 27 && id < 31) {
         //风
-        return 3;
+        return MJ_TYPE_FENG;
     }
     else if(id >= 31 && id < 34) {
         //箭
-        return 4
+        return MJ_TYPE_JIAN;
     }
+
+    return MJ_TYPE_NONE;
 }
 
 function shuffle(game) {
@@ -368,6 +377,132 @@ function checkCanTingPai(game,seatData){
     //console.log("singleCount:" + singleCount + ",colCount:" + colCount + ",pairCount:" + pairCount);
     //检查是不是平胡
     mjutils.checkTingPai(seatData,0,34);
+
+    if(seatData.tingMap.length > 0){
+        var gangscnt = seatData.angangs.length + seatData.wangangs.length + seatData.diangangs.length;
+        var pengscnt = seatData.pengs.length;
+        var chiscnt = seatData.zuochis.length + seatData.zhongchis.length + seatData.youchis.length;
+        //1、必须开门
+        if(pengscnt + gangscnt + chiscnt <= 0) {
+            //未开门，不能听牌，清空听牌地图
+            seatData.tingMap.splice(0,seatData.tingMap.length);
+            return;
+        }
+        //2、必须有碰
+        if(seatData.holds.length >= 3){
+            for(var k in seatData.countMap){
+                var c = seatData.countMap[k];
+                //3个或4个都可以作为一个碰
+                if(c >= 3)
+                    pengscnt++;
+                //中发白对子 免碰
+                else if(c == 2)
+                    if(getMJType(k) == MJ_TYPE_JIAN)
+                        pengscnt++;
+        }
+        if(pengscnt <= 0){
+            //没有碰，不能听牌，清空听牌地图
+            seatData.tingMap.splice(0,seatData.tingMap.length);
+            return;
+        }
+        //3、不能缺门
+        var mens = [false,false,false,false,false];
+        if(seatData.holds.length > 1){
+            for(var k in seatData.countMap){
+                var c = seatData.countMap[k];
+                if(c > 0){
+                    var t = getMJType(k);
+                    if(t >= mens.length)
+                        continue;
+                    mens[t] = true;
+                }
+        }
+        if(seatData.pengs.length){
+            for(var i in seatData.pengs) {
+                var peng = seatData.pengs[i];
+                var t = getMJType(peng);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.angangs.length){
+            for(var i in seatData.angangs) {
+                var gang = seatData.angangs[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.wangangs.length){
+            for(var i in seatData.wangangs) {
+                var gang = seatData.wangangs[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.diangangs.length){
+            for(var i in seatData.diangangs) {
+                var gang = seatData.diangangs[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.zuochis.length){
+            for(var i in seatData.zuochis) {
+                var gang = seatData.zuochis[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.youchis.length){
+            for(var i in seatData.youchis) {
+                var gang = seatData.youchis[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(seatData.zhongchis.length){
+            for(var i in seatData.zhongchis) {
+                var gang = seatData.zhongchis[i];
+                var t = getMJType(gang);
+                if(t >= mens.length)
+                    continue;
+                mens[t] = true;
+            }
+        }
+        if(!mens[0] || !mens[1] || !mens[2]){
+            //缺门，不能听牌，清空听牌地图
+            seatData.tingMap.splice(0,seatData.tingMap.length);
+            return;
+        }
+        //4、必须有19，指东南西北中发白，一万一饼一条九万九饼九条。
+        //5、必须有顺子、吃牌
+        if(seatData.holds.length >= 3){
+            for(var k in seatData.countMap){
+                var c = seatData.countMap[k];
+                //3个或4个都可以作为一个碰
+                if(c > 0){
+                    if(seatData.countMap[k+1] && seatData.countMap[k+2])
+                        chiscnt++;
+                }
+        }
+        if(chiscnt <= 0){
+            //没有顺子，不能听牌，清空听牌地图
+            seatData.tingMap.splice(0,seatData.tingMap.length);
+            return;
+        }
+
+    }
 }
 
 function getSeatIndex(userId){

@@ -148,10 +148,10 @@ exports.createRoom = function(creator,roomConf,gems,ip,port,callback){
 					};
 					
 					if(roomConf.type == "xlch"){
-						roomInfo.gameMgr = require("./gamemgr_dl_qh");
+						roomInfo.gameMgr = require("./gamemgr_xlch");
 					}
 					else if(roomConf.type == "xzdd"){
-						roomInfo.gameMgr = require("./gamemgr_dl_qh");
+						roomInfo.gameMgr = require("./gamemgr_xzdd");
 					}
 					else if(roomConf.type == "dl_qh"){
 						roomInfo.gameMgr = require("./gamemgr_dl_qh");
